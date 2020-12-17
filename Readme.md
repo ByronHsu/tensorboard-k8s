@@ -1,7 +1,7 @@
 ## Build tensorboard via Kubernetes
 
 1. `minikube start --kubernetes-version v1.14.3`
-2. `helm install submarine ./helm-charts/submarine`
+2. `helm install submarine ./helm-charts/submarine` (will setup traefik controller)
 3. `kubectl apply -f tf-board-mnist.yaml`
 
 ## Connect to tensorboard

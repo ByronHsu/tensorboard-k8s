@@ -1,0 +1,57 @@
+# https://kubernetes.io/docs/concepts/workloads/pods/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "myapp"
+  namespace: default
+  labels:
+    app: "myapp"
+spec:
+  containers:
+  - name: myapp
+    image: "traefik/whoami"
+    resources:
+      limits:
+        cpu: 200m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 200Mi
+    ports:
+    - containerPort: 80
+      name: http
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  selector:
+    app: myapp
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 80
+    name: http
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: whoami
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/rewrite-target: /boo
+  
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /foo
+        backend:
+          serviceName: myapp
+          servicePort: http
+---

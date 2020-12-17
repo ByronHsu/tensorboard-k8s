@@ -1,0 +1,78 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  mnist-tfboard
+  namespace: default
+  labels:
+    app:  mnist-tfboard
+spec:
+  selector:
+    matchLabels:
+      app: mnist-tfboard
+  template:
+    metadata:
+      labels:
+        app:  mnist-tfboard
+    spec:
+      containers:
+      - name:  mnist-tfboard
+        image:  tensorflow/tensorflow:1.11.0
+        command:
+          - "tensorboard"
+          - "--logdir=/train"
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6006
+        volumeMounts:
+          - mountPath: "/train"
+            name: "training"
+      volumes:
+        - name: "training"
+          persistentVolumeClaim:
+            claimName: "tfevent-volume"  
+      restartPolicy: Always
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: mnist-tfboard
+  namespace: default
+  labels:
+    app: mnist-tfboard
+spec:
+  selector:
+    app: mnist-tfboard
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 6006
+    name: http
+---
+# https://kubernetes.io/docs/concepts/services-networking/ingress/
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: mnist-tfboard
+  namespace: default
+  labels:
+    app: mnist-tfboard
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+        - path: /testpath
+          backend:
+            serviceName: mnist-tfboard
+            servicePort: 8080

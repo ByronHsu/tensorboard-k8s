@@ -31,10 +31,15 @@
    ```
 
 3. However, I can not access the tensorboard from `172.17.0.2:32080/testpath`. When I check the log of the pod, it shows that:
+
    ```
    TensorBoard 1.11.0 at http://mnist-tfboard-79bf6b8bc-jkh5l:6006 (Press CTRL+C to quit)
    W1217 07:37:38.816917 Thread-1 application.py:300] path /testpath not found, sending 404
    W1217 07:37:38.816916 139931846440704 application.py:300] path /testpath not found, sending 40
    ```
-   I suggested that it is because the request is forwarded from `172.17.0.2:32080/testpath` to `mnist-tfboard:8080/testpath` rather than `mnist-tfboard:8080`. But I have already set `traefik.ingress.kubernetes.io/rewrite-target: /`, it should not have the suffix of `/testpath`.
+
+   I suggested that it is because the request is forwarded from `172.17.0.2:32080/testpath` to `mnist-tfboard:8080/testpath` rather than `mnist-tfboard:8080`.
+
+   Yet, I have already set `traefik.ingress.kubernetes.io/rewrite-target: /`, it should not have the suffix of `/testpath`.
+
    Did anyone know the cause? Thanks.

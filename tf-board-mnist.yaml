@@ -55,24 +55,52 @@ spec:
   - protocol: TCP
     port: 8080
     targetPort: 6006
-    name: http
 ---
-# https://kubernetes.io/docs/concepts/services-networking/ingress/
-apiVersion: extensions/v1beta1
-kind: Ingress
+# # https://kubernetes.io/docs/concepts/services-networking/ingress/
+# apiVersion: extensions/v1beta1
+# kind: Ingress
+# metadata:
+#   name: mnist-tfboard
+#   namespace: default
+#   labels:
+#     app: mnist-tfboard
+#   annotations:
+#     kubernetes.io/ingress.class: traefik
+#     traefik.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   rules:
+#     - http:
+#         paths:
+#         - path: /testpath
+#           backend:
+#             serviceName: mnist-tfboard
+#             servicePort: 8080
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
 metadata:
   name: mnist-tfboard
-  namespace: default
-  labels:
-    app: mnist-tfboard
-  annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/rewrite-target: /
 spec:
-  rules:
-    - http:
-        paths:
-        - path: /testpath
-          backend:
-            serviceName: mnist-tfboard
-            servicePort: 8080
+  entryPoints:                      # [1]
+    - web
+  routes:                           # [2]
+  - kind: Rule
+    match: PathPrefix(`/testpath`) # [3]
+    middlewares:                    # [5]
+    - name: rewrite-target-middleware          # [6]
+      namespace: default            # [7]
+    services:                       # [8]
+    - kind: Service
+      name: mnist-tfboard
+      namespace: default
+      port: 8080
+---
+# Replace path with regex
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: rewrite-target-middleware
+spec:
+  replacePathRegex:
+    regex: ^(.*)
+    replacement: /
